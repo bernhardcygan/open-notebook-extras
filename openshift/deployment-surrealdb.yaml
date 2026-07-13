@@ -1,0 +1,55 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: surrealdb
+  labels:
+    app: surrealdb
+    app.kubernetes.io/name: surrealdb
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: surrealdb
+  strategy:
+    type: Recreate
+  template:
+    metadata:
+      labels:
+        app: surrealdb
+        app.kubernetes.io/name: surrealdb
+    spec:
+      containers:
+        - name: surrealdb
+          image: surrealdb/surrealdb:v2
+          imagePullPolicy: Always
+          # ENTRYPOINT is /surreal; credentials via SURREAL_USER / SURREAL_PASS (see SurrealDB CLI env docs).
+          args: [start]
+          env:
+            - name: SURREAL_EXPERIMENTAL_GRAPHQL
+              value: "true"
+            - name: SURREAL_LOG
+              value: info
+            - name: SURREAL_PATH
+              value: rocksdb:/mydata/mydatabase.db
+            - name: SURREAL_USER
+              valueFrom:
+                secretKeyRef:
+                  name: opennotebook-secrets
+                  key: surreal-user
+            - name: SURREAL_PASS
+              valueFrom:
+                secretKeyRef:
+                  name: opennotebook-secrets
+                  key: surreal-password
+          ports:
+            - name: rpc
+              containerPort: 8000
+              protocol: TCP
+          volumeMounts:
+            - name: data
+              mountPath: /mydata
+          resources: {}
+      volumes:
+        - name: data
+          persistentVolumeClaim:
+            claimName: surrealdb-data

@@ -1,0 +1,37 @@
+apiVersion: route.openshift.io/v1
+kind: Route
+metadata:
+  name: open-notebook-ui
+  labels:
+    app: open-notebook
+    app.kubernetes.io/name: open-notebook
+    app.kubernetes.io/component: ui
+spec:
+  to:
+    kind: Service
+    name: open-notebook
+    weight: 100
+  port:
+    targetPort: http-ui
+  tls:
+    termination: edge
+    insecureEdgeTerminationPolicy: Redirect
+---
+apiVersion: route.openshift.io/v1
+kind: Route
+metadata:
+  name: open-notebook-api
+  labels:
+    app: open-notebook
+    app.kubernetes.io/name: open-notebook
+    app.kubernetes.io/component: api
+spec:
+  to:
+    kind: Service
+    name: open-notebook
+    weight: 100
+  port:
+    targetPort: http-api
+  tls:
+    termination: edge
+    insecureEdgeTerminationPolicy: Redirect

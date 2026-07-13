@@ -1,0 +1,79 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: open-notebook
+  labels:
+    app: open-notebook
+    app.kubernetes.io/name: open-notebook
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: open-notebook
+  template:
+    metadata:
+      labels:
+        app: open-notebook
+        app.kubernetes.io/name: open-notebook
+    spec:
+      containers:
+        - name: open-notebook
+          image: lfnovo/open_notebook:v1-latest
+          imagePullPolicy: Always
+          ports:
+            - name: http-ui
+              containerPort: 8502
+              protocol: TCP
+            - name: http-api
+              containerPort: 5055
+              protocol: TCP
+          env:
+            - name: OPEN_NOTEBOOK_ENCRYPTION_KEY
+              valueFrom:
+                secretKeyRef:
+                  name: opennotebook-secrets
+                  key: encryption-key
+            - name: SURREAL_URL
+              value: ws://surrealdb:8000/rpc
+            - name: SURREAL_USER
+              valueFrom:
+                secretKeyRef:
+                  name: opennotebook-secrets
+                  key: surreal-user
+            - name: SURREAL_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: opennotebook-secrets
+                  key: surreal-password
+            - name: SURREAL_NAMESPACE
+              value: open_notebook
+            - name: SURREAL_DATABASE
+              value: open_notebook
+            # External URL the browser uses to reach the API (OpenShift Route); no /api suffix.
+            - name: API_URL
+              valueFrom:
+                configMapKeyRef:
+                  name: open-notebook-urls
+                  key: API_URL
+            # Next.js server-side proxy targets the API in the same pod (not the Route).
+            - name: INTERNAL_API_URL
+              value: http://127.0.0.1:5055
+            # Allow browser (UI Route origin) to call API Route; required when UI and API hosts differ.
+            - name: CORS_ORIGINS
+              valueFrom:
+                configMapKeyRef:
+                  name: open-notebook-urls
+                  key: CORS_ORIGINS
+            # OpenShift runs with an arbitrary UID; default $HOME/.cache is not writable.
+            - name: UV_CACHE_DIR
+              value: /app/data/.cache/uv
+            - name: XDG_CACHE_HOME
+              value: /app/data/.cache
+          volumeMounts:
+            - name: data
+              mountPath: /app/data
+          resources: {}
+      volumes:
+        - name: data
+          persistentVolumeClaim:
+            claimName: open-notebook-data

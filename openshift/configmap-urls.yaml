@@ -1,0 +1,18 @@
+# Browser calls the API at the Route hostname; the Next.js server proxies via loopback.
+# After routes exist, set real HTTPS URLs (no path; do not append /api). Example:
+#   API_HOST=$(oc get route open-notebook-api -o jsonpath='{.spec.host}')
+#   UI_HOST=$(oc get route open-notebook-ui -o jsonpath='{.spec.host}')
+#   oc patch configmap open-notebook-urls -p "{\"data\":{\"API_URL\":\"https://$API_HOST\",\"CORS_ORIGINS\":\"https://$UI_HOST\"}}"
+#   oc rollout restart deployment/open-notebook
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: open-notebook-urls
+  labels:
+    app: open-notebook
+    app.kubernetes.io/name: open-notebook
+data:
+  # Replace with: oc get route open-notebook-api -o jsonpath='https://{.spec.host}'
+  API_URL: https://REPLACE-WITH-OPEN-NOTEBOOK-API-ROUTE-HOST
+  # Replace with UI route origin (scheme + host, no trailing slash). Comma-separate if several.
+  CORS_ORIGINS: https://REPLACE-WITH-OPEN-NOTEBOOK-UI-ROUTE-HOST

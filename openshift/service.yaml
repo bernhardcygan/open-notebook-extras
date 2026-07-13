@@ -1,0 +1,37 @@
+apiVersion: v1
+kind: Service
+metadata:
+  name: surrealdb
+  labels:
+    app: surrealdb
+    app.kubernetes.io/name: surrealdb
+spec:
+  type: ClusterIP
+  selector:
+    app: surrealdb
+  ports:
+    - name: rpc
+      port: 8000
+      targetPort: rpc
+      protocol: TCP
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: open-notebook
+  labels:
+    app: open-notebook
+    app.kubernetes.io/name: open-notebook
+spec:
+  type: ClusterIP
+  selector:
+    app: open-notebook
+  ports:
+    - name: http-ui
+      port: 8502
+      targetPort: http-ui
+      protocol: TCP
+    - name: http-api
+      port: 5055
+      targetPort: http-api
+      protocol: TCP

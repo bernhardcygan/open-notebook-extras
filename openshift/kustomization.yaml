@@ -1,0 +1,11 @@
+# Apply everything: oc apply -k openshift/
+apiVersion: kustomize.config.k8s.io/v1beta1
+kind: Kustomization
+resources:
+  - secret.yaml
+  - configmap-urls.yaml
+  - pvc.yaml
+  - deployment-surrealdb.yaml
+  - deployment-open-notebook.yaml
+  - service.yaml
+  - route.yaml
